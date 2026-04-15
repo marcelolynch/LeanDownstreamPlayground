@@ -1,0 +1,30 @@
+name: Bump mathlib to LKG
+
+on:
+  schedule:
+    - cron: "0 20 * * *"  # Daily at 20:00 UTC, after the hopscotch-reports regression run
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Bump to LKG
+        id: bump
+        uses: leanprover-community/hopscotch-reports/.github/actions/bump-to-lkg@2026/04/PublishAndConsumeLkg
+        with:
+          downstream: LeanDownstreamPlayground
+
+      - name: Open bump PR
+        if: steps.bump.outputs.updated == 'true'
+        uses: leanprover-community/hopscotch-reports/.github/actions/open-bump-pr@2026/04/PublishAndConsumeLkg
+        with:
+          lkg-commit: ${{ steps.bump.outputs.lkg-commit }}
+          previous-pin: ${{ steps.bump.outputs.current-pin }}
+          source-run-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
