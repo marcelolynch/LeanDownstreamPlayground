@@ -11,18 +11,7 @@ permissions:
 
 jobs:
   bump:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Bump to LKG
-        id: bump
-        uses: leanprover-community/hopscotch-reports/.github/actions/bump-to-lkg@2026/04/PublishAndConsumeLkg
-
-      - name: Open bump PR
-        if: steps.bump.outputs.updated == 'true'
-        uses: leanprover-community/hopscotch-reports/.github/actions/open-bump-pr@2026/04/PublishAndConsumeLkg
-        with:
-          title: ${{ steps.bump.outputs.pr-title }}
-          message: ${{ steps.bump.outputs.bump-description }}
-          commit-message: ${{ steps.bump.outputs.commit-message }}
+    uses: leanprover-community/downstream-reports/.github/workflows/bump-dependency-to-latest.yml@main
+    permissions:
+      contents: write
+      pull-requests: write
