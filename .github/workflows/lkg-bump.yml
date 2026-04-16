@@ -25,6 +25,6 @@ jobs:
         if: steps.bump.outputs.updated == 'true'
         uses: leanprover-community/hopscotch-reports/.github/actions/open-bump-pr@2026/04/PublishAndConsumeLkg
         with:
-          lkg-commit: ${{ steps.bump.outputs.lkg-commit }}
-          previous-pin: ${{ steps.bump.outputs.current-pin }}
-          source-run-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          title: ${{ steps.bump.outputs.pr-title }}
+          message: ${{ steps.bump.outputs.bump-description }}
+          commit-message: ${{ steps.bump.outputs.commit-message }}
