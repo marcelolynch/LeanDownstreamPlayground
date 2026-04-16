@@ -18,8 +18,6 @@ jobs:
       - name: Bump to LKG
         id: bump
         uses: leanprover-community/hopscotch-reports/.github/actions/bump-to-lkg@2026/04/PublishAndConsumeLkg
-        with:
-          downstream: LeanDownstreamPlayground
 
       - name: Open bump PR
         if: steps.bump.outputs.updated == 'true'
