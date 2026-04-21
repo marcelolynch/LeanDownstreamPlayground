@@ -1,0 +1,24 @@
+name: Track mathlib incompatibility
+
+# Opens or maintains a single persistent issue describing the current
+# mathlib regression affecting this project (if any).  When the snapshot
+# clears the first-known-bad commit, the issue is closed automatically
+# with a resolution comment.
+#
+# Runs daily at 20:15 UTC — 15 minutes after the scheduled lkg-bump run,
+# by which time the downstream-reports publish-lkg workflow has refreshed
+# both lkg/latest.json and runs/latest.json.
+
+on:
+  schedule:
+    - cron: "15 20 * * *"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  incompatibility-issue:
+    uses: leanprover-community/downstream-reports/.github/workflows/open-incompatibility-issue.yml@2026/03/OpenIssue
+    permissions:
+      issues: write
