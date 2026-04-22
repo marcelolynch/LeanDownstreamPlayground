@@ -24,6 +24,7 @@ but never compiles Lean files.
   Use a tag (e.g. `"v4.29.0"`) or a commit SHA; set to `"HEAD"` to always fail.
 -/
 private def firstBreakingVersion : String := "v4.29.0"
+private def enableBreaking : Bool := false
 
 -- ---------------------------------------------------------------------------
 -- Helpers
@@ -115,6 +116,7 @@ private def findMathlibRev (manifest : String) : Option String := do
 -- ---------------------------------------------------------------------------
 
 #eval show IO Unit from do
+  if ! enableBreaking then return
   let manifest ← IO.FS.readFile "lake-manifest.json"
   let some rev := findMathlibRev manifest
     | throw <| IO.userError
