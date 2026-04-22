@@ -24,7 +24,7 @@ but never compiles Lean files.
   Use a tag (e.g. `"v4.29.0"`) or a commit SHA; set to `"HEAD"` to always fail.
 -/
 private def firstBreakingVersion : String := "v4.29.0"
-private def enableBreaking : Bool := true
+private def enableBreaking : Bool := false
 
 -- ---------------------------------------------------------------------------
 -- Helpers
