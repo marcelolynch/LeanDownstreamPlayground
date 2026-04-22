@@ -1,17 +1,12 @@
-name: Bump mathlib to LKG
+name: Track mathlib regression
 
 on:
   schedule:
-    - cron: "0 20 * * *"  # Daily at 20:00 UTC, after the hopscotch-reports regression run
+    - cron: "0 19 * * *"
   workflow_dispatch:
 
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
-  bump:
-    uses: leanprover-community/downstream-reports/.github/workflows/bump-dependency-to-latest.yml@main
+  regression-issue:
+    uses: leanprover-community/downstream-reports/.github/workflows/open-incompatibility-issue.yml@main
     permissions:
-      contents: write
-      pull-requests: write
+      issues: write
