@@ -1,4 +1,4 @@
-name: Track mathlib regression
+name: Bump mathlib dependency (opens PR)
 
 on:
   schedule:
@@ -7,6 +7,7 @@ on:
 
 jobs:
   regression-issue:
-    uses: leanprover-community/downstream-reports/.github/workflows/open-incompatibility-issue.yml@main
+    uses: leanprover-community/downstream-reports/.github/workflows/bump-dependency-to-latest.yml@main
     permissions:
-      issues: write
+      contents: write
+      pull-requests: write

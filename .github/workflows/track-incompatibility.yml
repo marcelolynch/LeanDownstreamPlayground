@@ -18,12 +18,7 @@ permissions:
   issues: write
 
 jobs:
-  incompatibility-issue:
-    runs-on: ubuntu-latest
+  regression-issue:
+    uses: leanprover-community/downstream-reports/.github/workflows/open-incompatibility-issue.yml@main
     permissions:
       issues: write
-    steps:
-    - uses: actions/checkout@v5
-    - name: Open or maintain FKB issue
-      id: open
-      uses: leanprover-community/downstream-reports/.github/actions/open-incompatibility-issue@2026/03/OpenIssue
