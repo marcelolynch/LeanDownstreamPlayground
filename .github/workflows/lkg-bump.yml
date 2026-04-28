@@ -6,8 +6,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  regression-issue:
+  bump:
     uses: leanprover-community/downstream-reports/.github/workflows/bump-dependency-to-latest.yml@main
+    with:
+      skip-build: true
     permissions:
       contents: write
       pull-requests: write
+      issues: write
+      
