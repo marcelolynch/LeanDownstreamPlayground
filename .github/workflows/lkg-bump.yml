@@ -12,7 +12,7 @@
 #                can't yet advance to the mathlib tip), and closes it automatically
 #                once the incompatibility is resolved.
 
-name: Update Dependencies
+name: Update Mathlib Dependency
 on:
   schedule:             # Sets a schedule to trigger the workflow
   - cron: "0 17 * * *" # Daily at 17:00 UTC, 2 hours after the downstream-reports regression run (15:00 UTC)
@@ -29,7 +29,7 @@ jobs:
 
       - name: Bump to latest mathlib
         id: bump
-        uses: leanprover-community/downstream-reports/.github/actions/bump-to-latest@main
+        uses: leanprover-community/downstream-reports/.github/actions/bump-to-latest@BumpToFkbFix
         with:
           # The bump-to-latest action performs a lake build as a sanity check by default,
           # but the build might be expensive and it will be re-checked when the PR is opened anyways:
@@ -39,11 +39,12 @@ jobs:
           # between the time downstream-reports published the last-known-good and the time this
           # PR is opened: this should be rare and it will be caught by the PR validation anyway,
           # so it is an acceptable tradeoff.
-          skip-build: true
+          skip-build: false
+          query-type: first-known-bad
 
       - name: Open or update PR
         if: steps.bump.outputs.updated == 'true'
-        uses: leanprover-community/downstream-reports/.github/actions/open-bump-pr@main
+        uses: leanprover-community/downstream-reports/.github/actions/open-bump-pr@BumpToFkbFix
         with:
           title:          "chore: ${{ steps.bump.outputs.pr-title }}"
           message:        ${{ steps.bump.outputs.bump-description }}
