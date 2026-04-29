@@ -16,9 +16,13 @@ on:
 
 permissions:
   issues: write
-
+  contents: write
+  pull-requests: write
 jobs:
-  regression-issue:
-    uses: leanprover-community/downstream-reports/.github/workflows/open-incompatibility-issue.yml@main
-    permissions:
-      issues: write
+  regression-track:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+    - name: Track incompatibility
+      id: track
+      uses: leanprover-community/downstream-reports/.github/actions/track-incompatibility@2026/04/TrackIncompatibilityAction
