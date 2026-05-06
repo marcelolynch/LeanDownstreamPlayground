@@ -23,7 +23,7 @@ but never compiles Lean files.
   `rev` is this commit or any strictly newer one.
   Use a tag (e.g. `"v4.29.0"`) or a commit SHA; set to `"HEAD"` to always fail.
 -/
-private def firstBreakingVersion : String := "52a20c752dae5eccced2bc3fc33fd73c0df502c0"
+private def firstBreakingVersion : String := "4049cbf2b80316ac34a98e89e0a8ef55d3a75f55"
 private def enableBreaking : Bool := true
 
 -- ---------------------------------------------------------------------------
