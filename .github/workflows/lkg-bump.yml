@@ -1,11 +1,10 @@
 # Keeps mathlib up to date and tracks compatibility.
 #
-# Pinned to downstream-reports@chelo/sub-daily-cadence (PR #8) to exercise
-# the pre-flight gate. Run twice via workflow_dispatch: the first run bumps
-# and opens the LKG PR; the second logs "Bump-PR branch already pins…" and
-# "Remote 'hopscotch/lkg-bump' already at tree…", skipping the lake build
-# and the force-push. The open-issue job opens the FKB fix PR independently
-# (matches the new canonical pattern: both PRs coexist).
+# To watch the pre-flight gate fire, dispatch twice in a row: the first run
+# bumps and opens the LKG PR; the second logs "Bump-PR branch already pins…"
+# and "Remote 'hopscotch/lkg-bump' already at tree…", skipping the lake
+# build and the force-push. The open-issue job opens an FKB fix PR
+# independently when a regression is reported (both PRs coexist by design).
 
 name: Update Mathlib Dependency
 on:
@@ -24,11 +23,11 @@ jobs:
 
       - name: Bump to latest mathlib
         id: bump
-        uses: leanprover-community/downstream-reports/.github/actions/bump-to-latest@chelo/sub-daily-cadence
+        uses: leanprover-community/downstream-reports/.github/actions/bump-to-latest@main
 
       - name: Open or update PR
         if: steps.bump.outputs.updated == 'true'
-        uses: leanprover-community/downstream-reports/.github/actions/open-bump-pr@chelo/sub-daily-cadence
+        uses: leanprover-community/downstream-reports/.github/actions/open-bump-pr@main
         with:
           title:          "chore: ${{ steps.bump.outputs.pr-title }}"
           message:        ${{ steps.bump.outputs.bump-description }}
@@ -44,4 +43,4 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v6.0.2
 
       - name: Open or update incompatibility issue (and fix PR)
-        uses: leanprover-community/downstream-reports/.github/actions/track-incompatibility@chelo/sub-daily-cadence
+        uses: leanprover-community/downstream-reports/.github/actions/track-incompatibility@main
