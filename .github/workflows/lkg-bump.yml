@@ -1,36 +1,18 @@
-# Keeps mathlib dependency up to date and tracks compatibility.
+# Keeps mathlib up to date and tracks compatibility.
 #
-# Pinned to leanprover-community/downstream-reports@chelo/sub-daily-cadence
-# (PR #8) to exercise the new sub-daily-cadence design:
-#
-#   - bump-to-latest: probes the bump-PR branch (hopscotch/lkg-bump) before
-#     running hopscotch; if the branch's manifest already pins mathlib at
-#     the snapshot LKG, the action skips and never spends a lake build.
-#   - open-bump-pr: skips its force-push when the remote branch's tree
-#     already matches what we'd push (already on main as 05bf111).
-#
-# To verify: run via workflow_dispatch back-to-back. The first run should
-# bump and open the PR; the second should log "Bump-PR branch already pins
-# the dependency at target …" and "Remote 'hopscotch/lkg-bump' already at
-# tree … with open PR #N — skipping force-push."
-#
-# query-type is the default (last-known-good) so the gate actually fires;
-# the gate is auto-disabled for first-known-bad targets.
+# Pinned to downstream-reports@chelo/sub-daily-cadence (PR #8) to exercise
+# the pre-flight gate. Run twice via workflow_dispatch: the first run bumps
+# and opens the PR; the second logs "Bump-PR branch already pins…" and
+# "Remote 'hopscotch/lkg-bump' already at tree…", skipping the lake build
+# and the force-push.
 
 name: Update Mathlib Dependency
 on:
   schedule:
-    # Daily at 17:00 UTC, 2 hours after the downstream-reports regression
-    # run. Crank shorter (e.g. "0 */2 * * *") to test sub-daily cadence —
-    # the actions are idempotent on unchanged input.
     - cron: "0 17 * * *"
   workflow_dispatch:
 
 env:
-  # Single source of truth for the bump-PR branch — referenced by
-  # open-bump-pr's `branch` (default value, kept explicit for clarity)
-  # and by the close-LKG step. bump-to-latest hardcodes this same value
-  # internally for its probe target.
   LKG_BRANCH: hopscotch/lkg-bump
 
 jobs:
@@ -42,10 +24,8 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      # Skip the LKG bump while an incompatibility is reported — reviewer
-      # attention should focus on the FKB fix PR opened by the open-issue
-      # job below. Combined with the close-LKG step there, this keeps at
-      # most one bump PR open at any time.
+      # Skip the LKG bump while a regression is active — focus belongs on
+      # the fix PR opened by the open-issue job below.
       - name: Check whether an incompatibility is reported
         id: fkb
         uses: leanprover-community/downstream-reports/.github/actions/query-latest@chelo/sub-daily-cadence
@@ -80,14 +60,11 @@ jobs:
         id: track
         uses: leanprover-community/downstream-reports/.github/actions/track-incompatibility@chelo/sub-daily-cadence
         with:
-          # Also open a PR bumping to the FKB so a maintainer can check
-          # out that branch and work on a fix.
           open-pr: true
 
-      # When an FKB fix PR is open, close any leftover LKG bump PR so
-      # only one bump PR is open at a time.
+      # `pr-number` is populated exactly when an FKB fix PR is open.
       - name: Close LKG bump PR when an FKB fix PR is open
-        if: steps.track.outputs.pr-action == 'created' || steps.track.outputs.pr-action == 'noop-existing'
+        if: steps.track.outputs.pr-number != ''
         env:
           GH_TOKEN: ${{ github.token }}
           FKB_PR: ${{ steps.track.outputs.pr-number }}
