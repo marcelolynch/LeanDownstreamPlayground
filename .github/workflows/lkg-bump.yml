@@ -1,28 +1,37 @@
 # Keeps mathlib dependency up to date and tracks compatibility.
 #
-# leanprover-community/downstream-reports publishes a daily snapshot
-# of each downstream's build status against recent mathlib commits, identifying the
-# last-known-good (LKG) and first-known-bad (FKB) mathlib revisions for each project.
+# Pinned to leanprover-community/downstream-reports@chelo/sub-daily-cadence
+# (PR #8) to exercise the new sub-daily-cadence design:
 #
-# The provided actions which are used here consume this snapshot, with:
+#   - bump-to-latest: probes the bump-PR branch (hopscotch/lkg-bump) before
+#     running hopscotch; if the branch's manifest already pins mathlib at
+#     the snapshot LKG, the action skips and never spends a lake build.
+#   - open-bump-pr: skips its force-push when the remote branch's tree
+#     already matches what we'd push (already on main as 05bf111).
 #
-#   bump:        
-#      updates lakefile.lean/lake-manifest to the LKG mathlib commit
-#      and opens (or force-pushes) a PR that should be instantly mergeable
-#   track-incompatibility:
-#       opens 
-#         (1) a persistent issue when an incompatible revision is detected (i.e.: FLT
-#             can't yet advance to the mathlib tip)
-#         (2) a pull request with the dependency pinned to this breaking commit, so it can be worked on
-#              by checking out that branch.
-#       closes these automatically once the incompatibility is resolved.
-
+# To verify: run via workflow_dispatch back-to-back. The first run should
+# bump and open the PR; the second should log "Bump-PR branch already pins
+# the dependency at target …" and "Remote 'hopscotch/lkg-bump' already at
+# tree … with open PR #N — skipping force-push."
+#
+# query-type is the default (last-known-good) so the gate actually fires;
+# the gate is auto-disabled for first-known-bad targets.
 
 name: Update Mathlib Dependency
 on:
-  schedule:             # Sets a schedule to trigger the workflow
-  - cron: "0 17 * * *" # Daily at 17:00 UTC, 2 hours after the downstream-reports regression run (15:00 UTC)
-  workflow_dispatch:    # Allows the workflow to be triggered manually via the GitHub interface
+  schedule:
+    # Daily at 17:00 UTC, 2 hours after the downstream-reports regression
+    # run. Crank shorter (e.g. "0 */2 * * *") to test sub-daily cadence —
+    # the actions are idempotent on unchanged input.
+    - cron: "0 17 * * *"
+  workflow_dispatch:
+
+env:
+  # Single source of truth for the bump-PR branch — referenced by
+  # open-bump-pr's `branch` (default value, kept explicit for clarity)
+  # and by the close-LKG step. bump-to-latest hardcodes this same value
+  # internally for its probe target.
+  LKG_BRANCH: hopscotch/lkg-bump
 
 jobs:
   bump:
@@ -33,42 +42,60 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Bump to latest mathlib
-        id: bump
-        uses: leanprover-community/downstream-reports/.github/actions/bump-to-latest@BumpToFkbFix
+      # Skip the LKG bump while an incompatibility is reported — reviewer
+      # attention should focus on the FKB fix PR opened by the open-issue
+      # job below. Combined with the close-LKG step there, this keeps at
+      # most one bump PR open at any time.
+      - name: Check whether an incompatibility is reported
+        id: fkb
+        uses: leanprover-community/downstream-reports/.github/actions/query-latest@chelo/sub-daily-cadence
         with:
-          # The bump-to-latest action performs a lake build as a sanity check by default,
-          # but the build might be expensive and it will be re-checked when the PR is opened anyways:
-          # let's pass this parameter to skip this check and just open the PR with the verified last-known-good.
-          #
-          # The only situation where this might fail is if there have been new commits in 
-          # between the time downstream-reports published the last-known-good and the time this
-          # PR is opened: this should be rare and it will be caught by the PR validation anyway,
-          # so it is an acceptable tradeoff.
-          skip-build: false
           query-type: first-known-bad
 
+      - name: Bump to latest mathlib
+        id: bump
+        if: steps.fkb.outputs.commit == ''
+        uses: leanprover-community/downstream-reports/.github/actions/bump-to-latest@chelo/sub-daily-cadence
+
       - name: Open or update PR
-        if: steps.bump.outputs.updated == 'true'
-        uses: leanprover-community/downstream-reports/.github/actions/open-bump-pr@BumpToFkbFix
+        if: steps.fkb.outputs.commit == '' && steps.bump.outputs.updated == 'true'
+        uses: leanprover-community/downstream-reports/.github/actions/open-bump-pr@chelo/sub-daily-cadence
         with:
+          branch:         ${{ env.LKG_BRANCH }}
           title:          "chore: ${{ steps.bump.outputs.pr-title }}"
           message:        ${{ steps.bump.outputs.bump-description }}
           commit-message: ${{ steps.bump.outputs.commit-message }}
 
   open-issue:
     runs-on: ubuntu-latest
+    needs: bump   # so the LKG bump PR is created first; the FKB PR (if any) gets a higher number
     permissions:
       issues: write
       contents: write
       pull-requests: write
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v6.0.2
+
       - name: Open or update incompatibility issue
-        uses: leanprover-community/downstream-reports/.github/actions/track-incompatibility@main
+        id: track
+        uses: leanprover-community/downstream-reports/.github/actions/track-incompatibility@chelo/sub-daily-cadence
         with:
-          # Open a PR bumping to the 'known bad' revision so a maintainer can check out that branch
-          # and work on a fix.
-          # This PR is independent to the bump PR opened in the other job, which should be automatically mergable
-          # without further modifications.
+          # Also open a PR bumping to the FKB so a maintainer can check
+          # out that branch and work on a fix.
           open-pr: true
+
+      # When an FKB fix PR is open, close any leftover LKG bump PR so
+      # only one bump PR is open at a time.
+      - name: Close LKG bump PR when an FKB fix PR is open
+        if: steps.track.outputs.pr-action == 'created' || steps.track.outputs.pr-action == 'noop-existing'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FKB_PR: ${{ steps.track.outputs.pr-number }}
+        run: |
+          set -euo pipefail
+          lkg_pr=$(gh pr list --state open --head "$LKG_BRANCH" --json number --jq '.[0].number // empty')
+          if [ -z "$lkg_pr" ]; then
+            echo "No open LKG bump PR; nothing to close."
+            exit 0
+          fi
+          gh pr close "$lkg_pr" --comment "Closing in favor of #${FKB_PR}: an incompatibility is currently reported, so maintainer attention should go to the fix PR pinned at the first-known-bad commit. A new last-known-good bump PR will be opened automatically once the incompatibility is resolved."
