@@ -2,18 +2,16 @@
 #
 # Pinned to downstream-reports@chelo/sub-daily-cadence (PR #8) to exercise
 # the pre-flight gate. Run twice via workflow_dispatch: the first run bumps
-# and opens the PR; the second logs "Bump-PR branch already pins…" and
+# and opens the LKG PR; the second logs "Bump-PR branch already pins…" and
 # "Remote 'hopscotch/lkg-bump' already at tree…", skipping the lake build
-# and the force-push.
+# and the force-push. The open-issue job opens the FKB fix PR independently
+# (matches the new canonical pattern: both PRs coexist).
 
 name: Update Mathlib Dependency
 on:
   schedule:
     - cron: "0 17 * * *"
   workflow_dispatch:
-
-env:
-  LKG_BRANCH: hopscotch/lkg-bump
 
 jobs:
   bump:
@@ -24,31 +22,20 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      # Skip the LKG bump while a regression is active — focus belongs on
-      # the fix PR opened by the open-issue job below.
-      - name: Check whether an incompatibility is reported
-        id: fkb
-        uses: leanprover-community/downstream-reports/.github/actions/query-latest@chelo/sub-daily-cadence
-        with:
-          query-type: first-known-bad
-
       - name: Bump to latest mathlib
         id: bump
-        if: steps.fkb.outputs.commit == ''
         uses: leanprover-community/downstream-reports/.github/actions/bump-to-latest@chelo/sub-daily-cadence
 
       - name: Open or update PR
-        if: steps.fkb.outputs.commit == '' && steps.bump.outputs.updated == 'true'
+        if: steps.bump.outputs.updated == 'true'
         uses: leanprover-community/downstream-reports/.github/actions/open-bump-pr@chelo/sub-daily-cadence
         with:
-          branch:         ${{ env.LKG_BRANCH }}
           title:          "chore: ${{ steps.bump.outputs.pr-title }}"
           message:        ${{ steps.bump.outputs.bump-description }}
           commit-message: ${{ steps.bump.outputs.commit-message }}
 
   open-issue:
     runs-on: ubuntu-latest
-    needs: bump   # so the LKG bump PR is created first; the FKB PR (if any) gets a higher number
     permissions:
       issues: write
       contents: write
@@ -56,23 +43,5 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v6.0.2
 
-      - name: Open or update incompatibility issue
-        id: track
+      - name: Open or update incompatibility issue (and fix PR)
         uses: leanprover-community/downstream-reports/.github/actions/track-incompatibility@chelo/sub-daily-cadence
-        with:
-          open-pr: true
-
-      # `pr-number` is populated exactly when an FKB fix PR is open.
-      - name: Close LKG bump PR when an FKB fix PR is open
-        if: steps.track.outputs.pr-number != ''
-        env:
-          GH_TOKEN: ${{ github.token }}
-          FKB_PR: ${{ steps.track.outputs.pr-number }}
-        run: |
-          set -euo pipefail
-          lkg_pr=$(gh pr list --state open --head "$LKG_BRANCH" --json number --jq '.[0].number // empty')
-          if [ -z "$lkg_pr" ]; then
-            echo "No open LKG bump PR; nothing to close."
-            exit 0
-          fi
-          gh pr close "$lkg_pr" --comment "Closing in favor of #${FKB_PR}: an incompatibility is currently reported, so maintainer attention should go to the fix PR pinned at the first-known-bad commit. A new last-known-good bump PR will be opened automatically once the incompatibility is resolved."
