@@ -24,6 +24,14 @@ jobs:
       - name: Bump to latest mathlib
         id: bump
         uses: leanprover-community/downstream-reports/.github/actions/bump-to-latest@main
+        with:
+          # Run `hopscotch fix apply` after the bump so the PR carries the
+          # source repair, not just the rev bump. With no-advisories left at its
+          # default (false), this applies deprecation advisories — e.g. it
+          # rewrites the deprecated `Matrix.star_mul` used in
+          # LeanDownstreamPlayground/DeprecatedUsage.lean to `StarMul.star_mul`
+          # once the bump crosses mathlib's 2026-04-20 deprecation.
+          apply-fixes: 'true'
 
       - name: Open or update PR
         if: steps.bump.outputs.updated == 'true'
@@ -32,6 +40,9 @@ jobs:
           title:          "chore: ${{ steps.bump.outputs.pr-title }}"
           message:        ${{ steps.bump.outputs.bump-description }}
           commit-message: ${{ steps.bump.outputs.commit-message }}
+          # Surface hopscotch's own `fix apply` output in the PR body so the
+          # applied deprecation fix is described in the tool's own words.
+          fix-summary:    ${{ steps.bump.outputs.fix-summary }}
 
   open-issue:
     runs-on: ubuntu-latest
@@ -44,3 +55,7 @@ jobs:
 
       - name: Open or update incompatibility issue (and fix PR)
         uses: leanprover-community/downstream-reports/.github/actions/track-incompatibility@main
+        with:
+          # Carry the boundary fix (and any deprecation advisories) into the
+          # first-known-bad fix PR, matching the LKG bump above.
+          apply-fixes: 'true'

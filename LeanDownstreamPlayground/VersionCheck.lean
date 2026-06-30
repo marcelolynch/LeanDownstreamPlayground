@@ -5,14 +5,24 @@ import Std
 
 Enforces a maximum allowed mathlib revision at **build time**.
 
-## Usage
+## Two simulation modes
 
-Change `firstBreakingVersion` to simulate downstream regressions:
+This repo can simulate two distinct downstream scenarios. They are mutually
+exclusive because the deprecation demo needs a *passing* build, so toggle
+`enableBreaking` between them:
 
-- Set it **at or below** the revision currently in `lake-manifest.json` →
-  `lake build` fails (simulates a regression first introduced by that version).
-- Set it **above** the current revision →
-  `lake build` succeeds.
+1. **Hard regression** (`enableBreaking := true`). Change `firstBreakingVersion`
+   to gate the build:
+   - At or below the revision in `lake-manifest.json` → `lake build` fails
+     (simulates a regression first introduced by that version). This exercises
+     the first-known-bad / `track-incompatibility` path.
+   - Above the current revision → `lake build` succeeds.
+
+2. **Soft deprecation** (`enableBreaking := false`, the current default). The
+   gate is a no-op, so the build succeeds while
+   `LeanDownstreamPlayground/DeprecatedUsage.lean` emits a deprecation warning
+   once mathlib is bumped past the deprecation. This exercises the
+   `apply-fixes` advisory path of `bump-to-latest`.
 
 `lake update` is never affected: it always resolves and writes the manifest,
 but never compiles Lean files.
@@ -24,7 +34,12 @@ but never compiles Lean files.
   Use a tag (e.g. `"v4.29.0"`) or a commit SHA; set to `"HEAD"` to always fail.
 -/
 private def firstBreakingVersion : String := "4049cbf2b80316ac34a98e89e0a8ef55d3a75f55"
-private def enableBreaking : Bool := true
+
+/-- When `false`, the hard regression gate is a no-op and the build succeeds.
+    Kept off so the deprecation-advisory demo in `DeprecatedUsage.lean` can
+    build (and warn) rather than hard-fail. Flip to `true` to simulate a
+    first-known-bad regression instead. -/
+private def enableBreaking : Bool := false
 
 -- ---------------------------------------------------------------------------
 -- Helpers
