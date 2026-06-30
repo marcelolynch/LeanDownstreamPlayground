@@ -12,7 +12,7 @@ maxSynthPendingDepth = 3
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "5450b53e5ddc75d46418fabb605edbf36bd0beb6"
+rev = "545b55ed85ce97981c9a4357e912d76b4837c49e"
 
 [[lean_lib]]
 name = "LeanDownstreamPlayground"
