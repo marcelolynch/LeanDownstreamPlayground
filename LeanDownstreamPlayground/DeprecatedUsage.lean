@@ -1,47 +1,40 @@
-import Mathlib.LinearAlgebra.Matrix.ConjTranspose
+/-
+Copyright (c) 2026 Marcelo Lynch. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Marcelo Lynch
+-/
+import Mathlib.AlgebraicTopology.SingularHomology.HomotopyInvarianceTopCat
 
 /-!
-# Deprecation Advisory Demo
+# Module Deprecation Demo
 
-This module exists to exercise the *deprecation advisory* path of
-downstream-reports' `bump-to-latest` action (the `apply-fixes` feature added in
-[PR #41](https://github.com/leanprover-community/downstream-reports/pull/41)).
+This module exercises the *module-deprecation* path of hopscotch's automated
+fixes (the `apply-fixes` feature added in downstream-reports
+[PR #41](https://github.com/leanprover-community/downstream-reports/pull/41)),
+as consumed by `.github/workflows/lkg-bump.yml`.
 
-The example below uses `Matrix.star_mul`, which mathlib **deprecated on
-2026-04-20** (PR
-[#38307](https://github.com/leanprover-community/mathlib4/pull/38307)) in favour
-of the root-namespace `StarMul.star_mul`. It survives only as a deprecated
-alias:
+It imports `Mathlib.AlgebraicTopology.SingularHomology.HomotopyInvarianceTopCat`,
+which mathlib renamed to `…SingularHomology.HomotopyInvariance`
+([#37658](https://github.com/leanprover-community/mathlib4/pull/37658), 2026-04-17)
+and then re-added as a `deprecated_module` shim
+([#37877](https://github.com/leanprover-community/mathlib4/pull/37877), 2026-04-21):
 
 ```
-@[deprecated (since := "2026-04-20")] protected alias star_mul := StarMul.star_mul
+public import Mathlib.AlgebraicTopology.SingularHomology.HomotopyInvariance
+deprecated_module (since := "2026-04-10")
 ```
 
 ## What this demonstrates
 
-* Pinned to **v4.30.0-rc2** (2026-04-18, *before* the deprecation), this builds
-  with no warning. The next release, **v4.30.0** (2026-05-26), is *after* it —
-  so a bump across that release window introduces the deprecation.
-* Built against any mathlib **at or after** the deprecation commit, Lean emits
+* Pinned to **v4.30.0-rc1** (2026-04-04, before the rename), the module is real
+  content, so this imports cleanly with no warning.
+* Built against **v4.30.0** (2026-05-26) or master, the import resolves through
+  the live shim and Lean's `linter.deprecated.module` fires
+  (`…HomotopyInvarianceTopCat has been deprecated`). The build still succeeds.
 
-  ```
-  warning: `Matrix.star_mul` has been deprecated: Use `StarMul.star_mul` instead
-  ```
-
-  The build still succeeds — a deprecation is a warning, not an error.
-
-When the daily mathlib bump (`.github/workflows/lkg-bump.yml`) crosses that
-commit, `hopscotch fix apply` (run because the workflow passes `apply-fixes:
-true`) detects this advisory and rewrites `Matrix.star_mul` → `StarMul.star_mul`,
-so the bump PR carries the source repair, not just the revision bump.
-
-To re-point this demo at a different deprecation, swap the lemma below for any
-other still-live deprecated alias and update the pin accordingly.
+Unlike a declaration-level `@[deprecated]` (which hopscotch does not rewrite),
+this is exactly the `deprecated_module` case hopscotch's autofix handles: a bump
+to a commit where the shim is live records a `deprecatedImports` advisory, and
+`hopscotch fix apply` rewrites the import to
+`…SingularHomology.HomotopyInvariance`, so the bump PR carries the migration.
 -/
-
-/-- A use of `Matrix.star_mul`. The statement mirrors the lemma's own signature,
-so it typechecks both before the deprecation (when it is a real theorem) and
-after it (when it is a deprecated alias to `StarMul.star_mul`). -/
-example {n α : Type*} [Fintype n] [NonUnitalNonAssocSemiring α] [StarRing α]
-    (M N : Matrix n n α) : star (M * N) = star N * star M :=
-  Matrix.star_mul M N
