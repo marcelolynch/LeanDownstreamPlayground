@@ -15,7 +15,7 @@ scope = "leanprover-community"
 # Pinned to the v4.30.0-rc2 release (commit 5450b53). The next release after it
 # is v4.30.0, which is where mathlib deprecated `Matrix.star_mul` (2026-04-20);
 # bumping across that release window is what the deprecation demo exercises.
-rev = "v4.30.0-rc2"
+rev = "9b71bd273e3c24a02f3c228fe3401dd0915456dc"
 
 [[lean_lib]]
 name = "LeanDownstreamPlayground"
