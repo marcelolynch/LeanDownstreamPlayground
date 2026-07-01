@@ -3,38 +3,29 @@ Copyright (c) 2026 Marcelo Lynch. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Marcelo Lynch
 -/
-import Mathlib.AlgebraicTopology.SingularHomology.HomotopyInvarianceTopCat
+import Mathlib.Order.Bounded
 
 /-!
-# Module Deprecation Demo
+# Module Deprecation Demo — warnings-as-error (`--iofail`)
 
-This module exercises the *module-deprecation* path of hopscotch's automated
-fixes (the `apply-fixes` feature added in downstream-reports
-[PR #41](https://github.com/leanprover-community/downstream-reports/pull/41)),
-as consumed by `.github/workflows/lkg-bump.yml`.
-
-It imports `Mathlib.AlgebraicTopology.SingularHomology.HomotopyInvarianceTopCat`,
-which mathlib renamed to `…SingularHomology.HomotopyInvariance`
-([#37658](https://github.com/leanprover-community/mathlib4/pull/37658), 2026-04-17)
-and then re-added as a `deprecated_module` shim
-([#37877](https://github.com/leanprover-community/mathlib4/pull/37877), 2026-04-21):
-
-```
-public import Mathlib.AlgebraicTopology.SingularHomology.HomotopyInvariance
-deprecated_module (since := "2026-04-10")
-```
+Imports `Mathlib.Order.Bounded`, which mathlib deprecated **in place** on
+2026-04-17 ([#38146](https://github.com/leanprover-community/mathlib4/pull/38146)):
+the file became a `deprecated_module` shim in a single commit — no removal gap —
+re-exporting `Mathlib.Order.Bounds.Defs`.
 
 ## What this demonstrates
 
-* Pinned to **v4.30.0-rc1** (2026-04-04, before the rename), the module is real
-  content, so this imports cleanly with no warning.
-* Built against **v4.30.0** (2026-05-26) or master, the import resolves through
-  the live shim and Lean's `linter.deprecated.module` fires
-  (`…HomotopyInvarianceTopCat has been deprecated`). The build still succeeds.
+* Pinned to **v4.30.0-rc1** (2026-04-04, before the deprecation) the module is
+  real content, so this builds clean.
+* The next release, **v4.30.0-rc2** (2026-04-18), is *after* the in-place
+  deprecation, so the import resolves through the shim and
+  `linter.deprecated.module` fires.
 
-Unlike a declaration-level `@[deprecated]` (which hopscotch does not rewrite),
-this is exactly the `deprecated_module` case hopscotch's autofix handles: a bump
-to a commit where the shim is live records a `deprecatedImports` advisory, and
-`hopscotch fix apply` rewrites the import to
-`…SingularHomology.HomotopyInvariance`, so the bump PR carries the migration.
+downstream-reports runs this build with lake's **`--iofail`** (via the
+`build_args` inventory option), so the deprecation *warning* **fails** the build.
+Because the module is present (a shim) at that boundary, hopscotch promotes the
+import from a green-build *advisory* to a **`proposedFix`** at the deprecating
+commit (scenario 8) — a first-known-bad regression whose fix (`import
+Mathlib.Order.Bounded` → `Mathlib.Order.Bounds.Defs`) is carried on the
+`track-incompatibility` path, not the LKG advisory path.
 -/
