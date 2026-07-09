@@ -12,12 +12,10 @@ maxSynthPendingDepth = 3
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-# Pinned to the v4.30.0-rc1 release (commit 0c154d6). At rc1 the module
-# `…SingularHomology.HomotopyInvarianceTopCat` is real content, so the build is
-# clean; mathlib renamed it away (#37658) and later re-added it as a
-# `deprecated_module` shim (#37877, live through v4.30.0 and master). Bumping
-# across that window is what the module-deprecation demo exercises.
-rev = "v4.30.0-rc1"
+# Pinned to the v4.30.0-rc2 release (commit 5450b53). The next release after it
+# is v4.30.0, which is where mathlib deprecated `Matrix.star_mul` (2026-04-20);
+# bumping across that release window is what the deprecation demo exercises.
+rev = "v4.30.0-rc2"
 
 [[lean_lib]]
 name = "LeanDownstreamPlayground"
