@@ -17,7 +17,7 @@ scope = "leanprover-community"
 # clean; mathlib renamed it away (#37658) and later re-added it as a
 # `deprecated_module` shim (#37877, live through v4.30.0 and master). Bumping
 # across that window is what the module-deprecation demo exercises.
-rev = "v4.30.0-rc1"
+rev = "8c79cb4f540eeb519b1a2187009a1916521fd168"
 
 [[lean_lib]]
 name = "LeanDownstreamPlayground"
