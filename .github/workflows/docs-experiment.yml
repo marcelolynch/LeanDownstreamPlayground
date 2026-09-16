@@ -1,0 +1,42 @@
+# Experiment for leanprover-community/docgen-action PRs #38 and #39.
+# Each push to this branch is one run. The docgen-action revision below is the
+# variable of the experiment. The lean-action cache is off, so that the
+# repository cache holds the documentation caches only.
+name: Docs cache experiment
+
+on:
+  push:
+    branches: [docs-cache-experiments]
+
+concurrency:
+  group: docs-cache-experiment
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Build the project
+        uses: leanprover/lean-action@v1
+        with:
+          use-github-cache: "false"
+
+      - name: Build the API documentation
+        uses: leanprover-community/docgen-action@main
+        with:
+          deploy: "false"
+          build-page: "false"
+
+      - name: Check the pages of the project
+        run: |
+          echo "HTML files of the project:"
+          find docs/docs -path 'docs/docs/LeanDownstreamPlayground*' -name '*.html' | sort
+          echo "HTML files in total: $(find docs/docs -name '*.html' | wc -l)"
+          test -f docs/docs/LeanDownstreamPlayground.html
+          test -f docs/docs/LeanDownstreamPlayground/Basic.html
+          echo "The pages of the project are present."

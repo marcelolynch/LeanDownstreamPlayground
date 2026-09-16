@@ -1,23 +1,14 @@
 name = "LeanDownstreamPlayground"
 version = "0.1.0"
-keywords = ["math"]
 defaultTargets = ["LeanDownstreamPlayground"]
 
-[leanOptions]
-pp.unicode.fun = true # pretty-prints `fun a ↦ b`
-relaxedAutoImplicit = false
-weak.linter.mathlibStandardSet = true
-maxSynthPendingDepth = 3
-
+# Experiment branch for leanprover-community/docgen-action PRs #38 and #39.
+# Mathlib is pinned to a commit, so that a later commit on the same toolchain
+# gives a Mathlib bump without a toolchain bump.
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-# Pinned to the v4.30.0-rc1 release (commit 0c154d6). At rc1 the module
-# `…SingularHomology.HomotopyInvarianceTopCat` is real content, so the build is
-# clean; mathlib renamed it away (#37658) and later re-added it as a
-# `deprecated_module` shim (#37877, live through v4.30.0 and master). Bumping
-# across that window is what the module-deprecation demo exercises.
-rev = "v4.30.0-rc1"
+rev = "c32e1ec0d1eb5237ba344eee50162f45d5b0fc76"
 
 [[lean_lib]]
 name = "LeanDownstreamPlayground"
