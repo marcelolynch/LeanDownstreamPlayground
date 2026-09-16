@@ -8,7 +8,7 @@ defaultTargets = ["LeanDownstreamPlayground"]
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "224c33990e5723deee0d5f30c9b23e6a5d3ac0d4"
+rev = "b90818238cb45962aaf36efc8ab08900578b5e5a"
 
 [[lean_lib]]
 name = "LeanDownstreamPlayground"
