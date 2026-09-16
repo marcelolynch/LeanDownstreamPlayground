@@ -27,7 +27,7 @@ jobs:
           use-github-cache: "false"
 
       - name: Build the API documentation
-        uses: marcelolynch/docgen-action@fix/regenerate-project-html-on-cache-hit
+        uses: marcelolynch/docgen-action@experiments/38-plus-39
         with:
           deploy: "false"
           build-page: "false"
@@ -37,6 +37,8 @@ jobs:
           echo "HTML files of the project:"
           find docs/docs -path 'docs/docs/LeanDownstreamPlayground*' -name '*.html' | sort
           echo "HTML files in total: $(find docs/docs -name '*.html' | wc -l)"
+          echo "Top-level pages:"
+          ls docs/docs/*.html | sort
           test -f docs/docs/LeanDownstreamPlayground.html
           test -f docs/docs/LeanDownstreamPlayground/Basic.html
           echo "The pages of the project are present."
