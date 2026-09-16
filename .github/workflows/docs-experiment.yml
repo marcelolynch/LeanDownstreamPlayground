@@ -1,4 +1,4 @@
-# Experiment for leanprover-community/docgen-action PRs #38 and #39.
+# Experiment for leanprover-community/docgen-action PR #40.
 # Each push to this branch is one run. The docgen-action revision below is the
 # variable of the experiment. The lean-action cache is off, so that the
 # repository cache holds the documentation caches only.
@@ -14,6 +14,7 @@ concurrency:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   docs:
@@ -27,7 +28,7 @@ jobs:
           use-github-cache: "false"
 
       - name: Build the API documentation
-        uses: marcelolynch/docgen-action@experiments/38-plus-39
+        uses: marcelolynch/docgen-action@2cd53ef92aa33865fd90966b4f29c8559ad25e7e # PR #40 head
         with:
           deploy: "false"
           build-page: "false"
@@ -42,3 +43,10 @@ jobs:
           test -f docs/docs/LeanDownstreamPlayground.html
           test -f docs/docs/LeanDownstreamPlayground/Basic.html
           echo "The pages of the project are present."
+
+      - name: Report the cache entries of the repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/${{ github.repository }}/actions/caches?per_page=20" \
+            --jq '.actions_caches[] | "\(.size_in_bytes/1e6|floor) MB  \(.key)"' || true
