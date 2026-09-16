@@ -27,7 +27,7 @@ jobs:
           use-github-cache: "false"
 
       - name: Build the API documentation
-        uses: leanprover-community/docgen-action@main
+        uses: marcelolynch/docgen-action@fix/regenerate-project-html-on-cache-hit
         with:
           deploy: "false"
           build-page: "false"
