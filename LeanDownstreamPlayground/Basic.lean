@@ -16,3 +16,10 @@ theorem two_prime : Nat.Prime 2 := Nat.prime_two
 theorem two_le_of_prime {p : ℕ} (hp : Nat.Prime p) : 2 ≤ p := hp.two_le
 
 end LeanDownstreamPlayground
+
+namespace LeanDownstreamPlayground
+
+/-- Three is a prime number. -/
+theorem three_prime : Nat.Prime 3 := Nat.prime_three
+
+end LeanDownstreamPlayground
