@@ -28,7 +28,7 @@ jobs:
           use-github-cache: "false"
 
       - name: Build the API documentation
-        uses: marcelolynch/docgen-action@2cd53ef92aa33865fd90966b4f29c8559ad25e7e # PR #40 head
+        uses: marcelolynch/docgen-action@36ea146e316c6b77c2c8c30abc1c25e74c0fe83e # PR #40 head
         with:
           deploy: "false"
           build-page: "false"
