@@ -25,3 +25,6 @@ It models a real downstream that depends on Mathlib and can break when Mathlib a
 ```bash
 export GITHUB_TOKEN=$(gh auth token)
 ```
+## Documentation cache experiment
+
+The branch `docs-cache-experiments` runs the documentation build of docgen-action PR #40 on each push.
