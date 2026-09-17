@@ -42,6 +42,7 @@ jobs:
           ls docs/docs/*.html | sort
           test -f docs/docs/LeanDownstreamPlayground.html
           test -f docs/docs/LeanDownstreamPlayground/Basic.html
+          test -f docs/docs/LeanDownstreamPlayground/Extra.html
           echo "The pages of the project are present."
 
       - name: Report the cache entries of the repository
